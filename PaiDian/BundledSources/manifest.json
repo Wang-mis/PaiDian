@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "preferredDigest": "4a38d9c79a18e2726abca4c14fbd679ad6e9192731063f90299329bb0f1fd66b",
+  "scripts": [
+    {
+      "filename": "01.js",
+      "name": "六音音源",
+      "version": "v1.2.1",
+      "author": "六音",
+      "originURL": "https://raw.githubusercontent.com/pdone/lx-music-source/main/sixyin/latest.js",
+      "sha256": "a407ffe0ab23c29cd32ce249b83e61c8e2b70719895f16034566ad7557282785"
+    },
+    {
+      "filename": "02.js",
+      "name": "独家音源",
+      "version": "6",
+      "author": "w",
+      "originURL": "https://raw.githubusercontent.com/pdone/lx-music-source/main/lx/latest.js",
+      "sha256": "ef5289ddc2e8fd98ec7ac9e096878d9e6fed5e4ae1669d21e4484eac247aeda7"
+    },
+    {
+      "filename": "03.js",
+      "name": "野花🌷",
+      "version": "1",
+      "author": null,
+      "originURL": "https://raw.githubusercontent.com/pdone/lx-music-source/main/flower/latest.js",
+      "sha256": "15c166987edde41cf5917b3160c0ab253ff17e5e6bc6765c9eaa11a822c4aa97"
+    },
+    {
+      "filename": "04.js",
+      "name": "星海音乐源",
+      "version": "v2.3.0",
+      "author": "万去了了 & 适配",
+      "originURL": "https://zrcdy.dpdns.org/lx/xinghai-music-source.js",
+      "sha256": "4a38d9c79a18e2726abca4c14fbd679ad6e9192731063f90299329bb0f1fd66b"
+    },
+    {
+      "filename": "05.js",
+      "name": "全豆要[聚合音源]",
+      "version": "9.3 93特供版 DeepSeek优化",
+      "author": "全豆要 and Gemini优化 Toskysun去混淆 TZB679兼容性处理",
+      "originURL": "https://raw.githubusercontent.com/pdone/lx-music-source/main/qdy/latest.js",
+      "sha256": "213f73232562b528826dd97601e74212b517014e06fd614b28d8d8aa0dda400c"
+    },
+    {
+      "filename": "06.js",
+      "name": "长青SVIP音源",
+      "version": "1.3.0",
+      "author": "SVIP",
+      "originURL": "https://raw.githubusercontent.com/pdone/lx-music-source/main/changqing/latest.js",
+      "sha256": "6a942987c1e111a113376fbf8ff9fb677c487058f16ce792779c72f69c4ed6de"
+    },
+    {
+      "filename": "07.js",
+      "name": "幻音音源",
+      "version": "v3",
+      "author": "竹佀",
+      "originURL": "https://raw.githubusercontent.com/pdone/lx-music-source/main/huanyin/latest.js",
+      "sha256": "4a81129240ecae3ebf6b42f28c73e2d37bbcb6fccac9a73a401d90cdd36bee5f"
+    },
+    {
+      "filename": "08.js",
+      "name": "ikun音源",
+      "version": null,
+      "author": "ikunshare",
+      "originURL": "https://raw.githubusercontent.com/pdone/lx-music-source/main/ikun/latest.js",
+      "sha256": "8db6c45bc225f1f15fc2e96f7d9ad3bf2e49dd1f2a998cdf23704185ea41fe89"
+    },
+    {
+      "filename": "09.js",
+      "name": "野草🌾",
+      "version": "1",
+      "author": null,
+      "originURL": "https://raw.githubusercontent.com/pdone/lx-music-source/main/grass/latest.js",
+      "sha256": "d694275f382427d3fef809fc77338ef014dc330af710cca6b3233ece8740510f"
+    },
+    {
+      "filename": "10.js",
+      "name": "Huibq_lxmusic源",
+      "version": "v1.2.0",
+      "author": "Huibq",
+      "originURL": "https://raw.githubusercontent.com/pdone/lx-music-source/main/huibq/latest.js",
+      "sha256": "a9adeb456690b523008038224091cee31977606302d79082eb06adb3c75c9146"
+    }
+  ]
+}

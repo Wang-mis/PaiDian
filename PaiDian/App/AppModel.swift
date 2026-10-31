@@ -104,6 +104,16 @@ import Observation
     }
     func playlistItems(_ id: UUID) async -> [PlaylistItem] { do { return try await services?.library.items(playlistID: id) ?? [] } catch { report(error); return [] } }
     func coverData(_ key: String?) async -> Data? { guard let key else { return nil }; return try? await fileStore?.read(key) }
+    func artworkData(url: URL?, track: Track?, playlistID: UUID?) async throws -> Data? {
+        var source = track
+        if source == nil, let playlistID { source = await playlistItems(playlistID).first?.track }
+        if var source {
+            if let url { source.artworkURL = url }
+            return try await artworkLoader?.load(source)
+        }
+        if let url { return try await artworkLoader?.load(url) }
+        return nil
+    }
     func pauseAndSave() { (player as? PlaybackCoordinator)?.persist() }
     isolated deinit { subscriptions.forEach { $0.cancel() }; services?.sourceBridge?.cancel() }
 }

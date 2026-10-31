@@ -74,7 +74,7 @@ struct SettingsScreen: View {
                 LabeledContent("音频缓存",value:ByteCountFormatter.string(fromByteCount:audioCacheSize,countStyle:.file))
                 Button("清除音频缓存") { Task { do { try await model.audioCache?.clear();audioCacheSize=(try? await model.audioCache?.size()) ?? 0 } catch { model.report(error) } } }
             } header: { Text("音频缓存") } footer: { Text("自动缓存当前歌曲。正在播放的文件会保留至播放结束；歌单、音源和歌词调整不会删除。") }
-            Section("关于") { LabeledContent("拍点", value: "1.0.0"); Text("个人音乐播放器 · iOS 17+\n歌曲来自你选择的平台与音源，歌单保存在本机。").font(.footnote).foregroundStyle(.secondary) }
+            Section("关于") { LabeledContent("拍点", value: Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "—"); Text("个人音乐播放器 · iOS 17+\n歌曲来自你选择的平台与音源，歌单保存在本机。").font(.footnote).foregroundStyle(.secondary) }
             #if DEBUG
             Section("开发") { NavigationLink("集成诊断") { DiagnosticsScreen() } }
             #endif

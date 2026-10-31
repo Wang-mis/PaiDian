@@ -2,6 +2,7 @@ import XCTest
 @testable import PaiDian
 
 @MainActor final class ModuleTests: XCTestCase {
+    func testArtworkResolution() async throws { try await ArtworkValidation.run() }
     func testBundledSourceInstallation() async throws { try await BundledSourceValidation.run() }
     func testSeekActualLanding() async throws { try await PlaybackValidation.seekActualLanding() }
     func testAudioCacheDisk() async throws { try await AudioCacheValidation.disk() }

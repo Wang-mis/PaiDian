@@ -6,6 +6,7 @@ import SwiftData
 
 @MainActor enum CoreValidation {
     static let cases: [(String, @MainActor () async throws -> Void)] = [
+        ("封面补查、去重、缓存与失效恢复", ArtworkValidation.run),
         ("内置音源安装、升级隔离与中断恢复", BundledSourceValidation.run),
         ("音频缓存持久化",AudioCacheValidation.disk),("音频缓存容量与清理",AudioCacheValidation.capacity),("音频缓存分段与完整下载",AudioCacheValidation.transfer),("音频缓存错误与取消",AudioCacheValidation.failures),("缓存播放、循环与重启",AudioCacheValidation.playback),
         ("音质范围设置与迁移", QualityLyricsValidation.settings), ("同源音质降级顺序", QualityLyricsValidation.order), ("媒体失败同源降级", QualityLyricsValidation.mediaRange), ("五类歌词解码", QualityLyricsValidation.codecs), ("五平台歌词固定响应", QualityLyricsValidation.platformFixtures), ("歌词回退和缓存隔离", QualityLyricsValidation.fallback), ("精确歌词调度", QualityLyricsValidation.timing), ("领域身份与快照", domain), ("四种播放模式边界", modes), ("随机历史与前进", shuffle), ("下一首 FIFO 与恢复", priorities), ("LRC、译文与 offset", lyrics), ("逐曲歌词偏移、浏览与设置兼容", lyricPresentation), ("AES 与 MD5 向量", crypto), ("五个平台字段映射", catalog), ("本地文件与缓存", files), ("SwiftData 歌单事务", storage), ("SwiftData 历史和快照", persistence), ("磁盘存储重开", diskReopen), ("脚本初始化与取链", runtime), ("跨端兼容隔离", compatibility), ("脚本 HTTP 和编码桥接", scriptHTTP), ("上游空地址归因与回退", upstreamFailure), ("脚本异常与取消", scriptErrors), ("音源替换失败回滚", sourceLifecycle), ("音源回退顺序与耗尽", sourceFallbacks), ("音源排序持久化与失败回滚", sourceOrderingPersistence), ("保留导入失败状态", retainedSourceFailure), ("搜索分页、部分失败与竞态", search)

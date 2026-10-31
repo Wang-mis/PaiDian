@@ -45,11 +45,11 @@ import MediaPlayer
         guard let track = state.queue.current?.track else { artworkTask?.cancel(); artworkKey = nil; currentArtwork = nil; MPNowPlayingInfoCenter.default().nowPlayingInfo = nil; return }
         if artworkKey != track.key {
             artworkKey = track.key; currentArtwork = nil; artworkTask?.cancel()
-            if let url = track.artworkURL { artworkTask = Task { [weak self,artwork] in
-                guard let data = try? await artwork.load(url), let image = UIImage(data:data), !Task.isCancelled, let self, self.artworkKey == track.key else { return }
+            artworkTask = Task { [weak self,artwork] in
+                guard let data = try? await artwork.load(track), let image = UIImage(data:data), !Task.isCancelled, let self, self.artworkKey == track.key else { return }
                 let mediaArtwork = MPMediaItemArtwork(boundsSize:image.size) { _ in image }; self.currentArtwork = mediaArtwork
                 if var info = MPNowPlayingInfoCenter.default().nowPlayingInfo { info[MPMediaItemPropertyArtwork] = mediaArtwork; MPNowPlayingInfoCenter.default().nowPlayingInfo = info }
-            } }
+            }
         }
         var info: [String:Any] = [MPMediaItemPropertyTitle:track.title, MPMediaItemPropertyArtist:track.artistText, MPMediaItemPropertyAlbumTitle:track.albumTitle, MPMediaItemPropertyPlaybackDuration:Double(state.durationMS)/1000, MPNowPlayingInfoPropertyElapsedPlaybackTime:Double(state.positionMS)/1000, MPNowPlayingInfoPropertyPlaybackRate:state.status == .playing ? 1.0 : 0.0]
         if let currentArtwork { info[MPMediaItemPropertyArtwork] = currentArtwork }; MPNowPlayingInfoCenter.default().nowPlayingInfo = info

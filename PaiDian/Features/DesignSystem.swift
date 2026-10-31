@@ -11,6 +11,7 @@ struct ScreenBackground: View {
 struct Artwork: View {
     @Environment(AppModel.self) private var model
     var url: URL?; var size: CGFloat; var favorite = false; var fileKey: String?
+    var track: Track?; var playlistID: UUID?
     @State private var image: UIImage?
     var body: some View {
         ZStack {
@@ -18,11 +19,10 @@ struct Artwork: View {
             if let image { Image(uiImage: image).resizable().scaledToFill() }
             else { Image(systemName: favorite ? "heart.fill" : "music.note").font(.system(size: max(16,size * 0.3))).foregroundStyle(.white.opacity(0.7)) }
         }.frame(width: size, height: size).clipShape(RoundedRectangle(cornerRadius: size > 80 ? 14 : 7))
-            .task(id: (fileKey ?? "") + (url?.absoluteString ?? "")) {
+            .task(id: (fileKey ?? "") + (url?.absoluteString ?? "") + (track?.key.encoded ?? "") + (playlistID?.uuidString ?? "") + (playlistID == nil ? "" : model.library.revision.uuidString)) {
                 image = nil
-                if let fileKey, let data = await model.coverData(fileKey) { image = UIImage(data: data); return }
-                guard let url else { return }
-                do { guard let data = try await model.artworkLoader?.load(url) else { return }; let decoded = await Task.detached { UIImage(data:data) }.value; try Task.checkCancellation(); image = decoded } catch { }
+                if let fileKey, let data = await model.coverData(fileKey), let decoded = UIImage(data:data) { try? Task.checkCancellation(); if !Task.isCancelled { image = decoded }; return }
+                do { guard let data = try await model.artworkData(url:url,track:track,playlistID:playlistID) else { return }; let decoded = await Task.detached { UIImage(data:data) }.value; try Task.checkCancellation(); image = decoded } catch { }
             }.accessibilityHidden(true)
     }
 }
@@ -40,7 +40,7 @@ struct TrackRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Button(action: play) { HStack(spacing: 12) {
-                if artwork { Artwork(url: track.artworkURL, size: 46) }
+                if artwork { Artwork(url: track.artworkURL, size: 46, track: track) }
                 VStack(alignment: .leading, spacing: 5) {
                     Text(title).font(.system(size: 16)).foregroundStyle(model.playback.queue.current?.track.key == track.key ? Theme.red : .primary).lineLimit(1)
                     Text([track.artistText,track.albumTitle].filter { !$0.isEmpty }.joined(separator: " · ")).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
@@ -60,7 +60,7 @@ struct MiniPlayer: View {
     @Environment(AppModel.self) private var model
     var body: some View {
         HStack(spacing: 10) {
-            Button { model.showPlayer = true } label: { HStack(spacing: 10) { Artwork(url: model.playback.queue.current?.track.artworkURL, size: 38).clipShape(Circle()); Text(model.playback.queue.current.map { $0.track.title + " - " + $0.track.artistText } ?? "选择歌曲开始播放").font(.system(size: 13)).lineLimit(1); Spacer(minLength: 0) }.contentShape(Rectangle()) }.buttonStyle(.plain).accessibilityIdentifier("miniPlayer")
+            Button { model.showPlayer = true } label: { HStack(spacing: 10) { Artwork(url: model.playback.queue.current?.track.artworkURL, size: 38, track: model.playback.queue.current?.track).clipShape(Circle()); Text(model.playback.queue.current.map { $0.track.title + " - " + $0.track.artistText } ?? "选择歌曲开始播放").font(.system(size: 13)).lineLimit(1); Spacer(minLength: 0) }.contentShape(Rectangle()) }.buttonStyle(.plain).accessibilityIdentifier("miniPlayer")
             Button { Task { await model.togglePlay() } } label: { MiniPlaybackRing(positionMS:model.playback.confirmedPositionMS,durationMS:model.playback.durationMS,playing:model.playback.desiredPlaying).frame(width: 44, height: 44) }.buttonStyle(.plain).accessibilityLabel(model.playback.desiredPlaying ? "暂停" : "播放")
             Button { model.showQueue = true } label: { Image(systemName: "list.bullet").font(.system(size: 22)).frame(width: 44, height: 44) }.buttonStyle(.plain).accessibilityLabel("播放队列")
         }.padding(.leading, 6).padding(.trailing, 4).frame(height: 50).background(.regularMaterial, in: Capsule()).overlay(Capsule().stroke(.primary.opacity(0.08), lineWidth: 0.5)).padding(.horizontal, 16)

@@ -4,8 +4,10 @@ from pathlib import Path
 import hashlib
 import json
 import subprocess
+import plistlib
 
 root = Path(__file__).resolve().parents[1]
+app_info = plistlib.loads((root / 'PaiDian' / 'Info.plist').read_bytes())
 # Application identity must survive a brand/target rename and project regeneration.
 legacy_bundle_ids = {
     'PaiDian': 'org.anylisten.AnyListen',
@@ -77,7 +79,7 @@ for name in target_ids:
     product = obj('product:' + name, '{isa=PBXFileReference;explicitFileType=' + ('wrapper.application' if is_app else 'wrapper.cfbundle') + ';includeInIndex=0;path=' + name + ext + ';sourceTree=BUILT_PRODUCTS_DIR;}'); products.append(product)
     configs = []
     for configuration in ['Debug', 'Release']:
-        settings = {'PRODUCT_NAME': '$(TARGET_NAME)', 'PRODUCT_BUNDLE_IDENTIFIER': legacy_bundle_ids[name], 'SWIFT_VERSION':'5.0', 'SWIFT_STRICT_CONCURRENCY':'targeted', 'IPHONEOS_DEPLOYMENT_TARGET':'17.0','SDKROOT':'iphoneos','SUPPORTED_PLATFORMS':'iphoneos iphonesimulator','TARGETED_DEVICE_FAMILY':'1','CODE_SIGN_STYLE':'Automatic','GENERATE_INFOPLIST_FILE':'NO' if is_app else 'YES', 'CURRENT_PROJECT_VERSION':'1', 'MARKETING_VERSION':'1.0.0', 'ENABLE_USER_SCRIPT_SANDBOXING':'YES'}
+        settings = {'PRODUCT_NAME': '$(TARGET_NAME)', 'PRODUCT_BUNDLE_IDENTIFIER': legacy_bundle_ids[name], 'SWIFT_VERSION':'5.0', 'SWIFT_STRICT_CONCURRENCY':'targeted', 'IPHONEOS_DEPLOYMENT_TARGET':'17.0','SDKROOT':'iphoneos','SUPPORTED_PLATFORMS':'iphoneos iphonesimulator','TARGETED_DEVICE_FAMILY':'1','CODE_SIGN_STYLE':'Automatic','GENERATE_INFOPLIST_FILE':'NO' if is_app else 'YES', 'CURRENT_PROJECT_VERSION':app_info['CFBundleVersion'], 'MARKETING_VERSION':app_info['CFBundleShortVersionString'], 'ENABLE_USER_SCRIPT_SANDBOXING':'YES'}
         settings.update(saved_identity.get((name, configuration), {}))
         if is_app: settings.update({'INFOPLIST_FILE':'PaiDian/Info.plist','ASSETCATALOG_COMPILER_APPICON_NAME':'AppIcon'})
         elif is_ui: settings['TEST_TARGET_NAME'] = 'PaiDian'

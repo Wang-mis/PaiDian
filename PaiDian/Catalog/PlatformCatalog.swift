@@ -60,10 +60,12 @@ struct PlatformCatalog: CatalogProvider {
         case .kw:
             id = string(row["MUSICRID"]).replacingOccurrences(of: "MUSIC_", with: ""); title = string(row["SONGNAME"]); artists = [string(row["ARTIST"])]; album = string(row["ALBUM"]); albumID = string(row["ALBUMID"]); duration = int64(row["DURATION"]).map { $0 * 1000 }
             let info = string(row["N_MINFO"])
+            image = coverURL((row["pic"] ?? row["PICURL"]) as? String)?.absoluteString
             for (quality, bitrate) in [(AudioQuality.q128,"128"),(.q320,"320"),(.flac,"2000"),(.flac24bit,"4000")] { if info.contains("bitrate:\(bitrate),") { add(quality, nil) } }
         case .kg:
             id = string(row["Audioid"]); title = string(row["OriSongName"]); if !string(row["Suffix"]).isEmpty { title += " " + string(row["Suffix"]) }; artists = names(row["Singers"]); if artists.isEmpty { artists = [string(row["SingerName"])] }; album = string(row["AlbumName"]); albumID = string(row["AlbumID"]); duration = int64(row["Duration"]).map { $0 * 1000 }; fields["hash"] = string(row["FileHash"]); fields["_interval"] = integer(row["Duration"])
             for (quality, prefix) in [(AudioQuality.q128,""),(.q320,"HQ"),(.flac,"SQ"),(.flac24bit,"Res")] { if integer(row[prefix + "FileSize"]) > 0 { add(quality, row[prefix + "FileSize"], hash: row[prefix + "FileHash"]) } }
+            image = coverURL((row["Image"] ?? row["img"] ?? row["pic"]) as? String)?.absoluteString
         case .tx:
             id = string(row["mid"]); title = string(row["title"] ?? row["name"]); artists = names(row["singer"]); let a = dict(row["album"]); album = string(a["name"]); albumID = string(a["mid"]); duration = int64(row["interval"]).map { $0 * 1000 }
             let file = dict(row["file"]); fields["songId"] = string(row["id"]); fields["albumMid"] = albumID; fields["strMediaMid"] = string(file["media_mid"])
@@ -90,12 +92,42 @@ struct PlatformCatalog: CatalogProvider {
     }
     func fetchTrackDetail(_ track: Track) async throws -> Track {
         guard track.key.platform == platform else { throw malformed() }
-        if platform == .kw, track.artworkURL == nil {
-            let root = try await json(HTTPPayload(url: try url("http://m.kuwo.cn/newh5/singles/songinfoandlrc", ["musicId":track.key.providerID])))
-            var result = track; let info = dict(dict(root["data"])["songinfo"]); result.artworkURL = (info["pic"] as? String).flatMap(URL.init(string:)); return result
+        guard track.artworkURL == nil else { return track }
+        var result = track
+        if platform == .kw {
+            do {
+                let response = try await http.execute(HTTPPayload(url: try url("https://artistpicserver.kuwo.cn/pic.web", ["corp":"kuwo","type":"rid_pic","pictype":"500","size":"500","rid":track.key.providerID])))
+                if (200..<300).contains(response.status) {
+                    result.artworkURL = coverURL(String(data: response.body, encoding: .utf8))
+                }
+            } catch is CancellationError { throw CancellationError() } catch { try Task.checkCancellation() }
+            if result.artworkURL == nil {
+                let root = try await json(HTTPPayload(url: try url("https://m.kuwo.cn/newh5/singles/songinfoandlrc", ["musicId":track.key.providerID])))
+                result.artworkURL = coverURL(dict(dict(root["data"])["songinfo"])["pic"] as? String)
+            }
+        } else if platform == .kg {
+            let hash = track.metadata.payload["hash"]?.string ?? ""
+            guard !hash.isEmpty else { throw AppFailure.make("歌曲缺少酷狗封面查询标识", module:"artwork") }
+            let resource: [String:Any] = ["album_audio_id":track.key.providerID,"album_id":track.metadata.payload["albumId"]?.string ?? "","hash":hash,"id":0,"name":"\(track.artistText) - \(track.title).mp3","type":"audio"]
+            let body: [String:Any] = ["appid":1001,"area_code":"1","behavior":"play","clientver":"9020","need_hash_offset":1,"relate":1,"resource":[resource],"token":"","userid":2626431536,"vip":1]
+            // This public metadata endpoint serves HTTP; HTTPS currently has a hostname mismatch.
+            let root = try await json(HTTPPayload(url:URL(string:"http://media.store.kugou.com/v1/get_res_privilege")!,method:"POST",headers:["Content-Type":"application/json","KG-RC":"1","KG-THash":"expand_search_manager.cpp:852736169:451","User-Agent":"KuGou2012-9020-ExpandSearchManager"],body:try JSONSerialization.data(withJSONObject:body)))
+            let info = dict((root["data"] as? [[String:Any]])?.first?["info"])
+            result.artworkURL = coverURL(info["image"] as? String)
+        } else {
+            return track
         }
-        // Search results already contain the resolver's required identity and quality fields.
-        return track
+        guard let image = result.artworkURL else { throw AppFailure.make("平台未返回有效歌曲封面", module:"artwork",retryable:true) }
+        result.metadata.payload["img"] = .string(image.absoluteString)
+        return result
+    }
+    private func coverURL(_ raw: String?) -> URL? {
+        guard let raw, var parts = URLComponents(string:raw.trimmingCharacters(in:.whitespacesAndNewlines).replacingOccurrences(of:"{size}",with:"500")),
+              let host = parts.host, ["http","https"].contains(parts.scheme?.lowercased() ?? "") else { return nil }
+        if host.hasSuffix(".kwcdn.kuwo.cn") {
+            parts.host = host.replacingOccurrences(of:".kwcdn.kuwo.cn",with:".kuwo.cn"); parts.scheme = "https"
+        } else if host.hasSuffix(".kugou.com") { parts.scheme = "https" }
+        return parts.url
     }
     func fetchLyrics(_ track: Track) async throws -> RawLyrics { try await platformLyrics(track) }
     private func json(_ request: HTTPPayload) async throws -> [String: Any] {

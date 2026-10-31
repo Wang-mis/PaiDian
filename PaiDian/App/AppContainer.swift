@@ -30,7 +30,7 @@ import Foundation
         let sources = SourceManager(repository:store,files:files,http:http)
         let providers = Dictionary(uniqueKeysWithValues:MusicPlatform.allCases.map { ($0,PlatformCatalog(platform:$0,http:http) as any CatalogProvider) })
         let search = SearchService(providers:providers,history:store), playback = PlaybackCoordinator(source:sources,snapshots:store,history:store,engine:AVAudioEngineAdapter(audioCache:audioCache),audioCache:audioCache)
-        let artwork = ArtworkLoader(cache:cache,http:http), media = SystemMediaController(playback:playback,artwork:artwork)
+        let artwork = ArtworkLoader(cache:cache,http:http,providers:providers), media = SystemMediaController(playback:playback,artwork:artwork)
         playback.onStateChange = { [weak media] state in media?.update(state) }
         let bridge = Task {
             var generation: UUID?

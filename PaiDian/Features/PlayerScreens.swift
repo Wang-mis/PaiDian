@@ -41,7 +41,7 @@ import SwiftUI
         }.background {
             LinearGradient(colors:[Color(red:0.20,green:0.13,blue:0.12),Color(red:0.105,green:0.07,blue:0.067)],startPoint:.top,endPoint:.bottom)
                 .overlay { GeometryReader { background in
-                    if let track { Artwork(url:track.artworkURL,size:max(background.size.width,background.size.height)).blur(radius:100).opacity(0.12).position(x:background.size.width/2,y:background.size.height/2) }
+                    if let track { Artwork(url:track.artworkURL,size:max(background.size.width,background.size.height),track:track).blur(radius:100).opacity(0.12).position(x:background.size.width/2,y:background.size.height/2) }
                 }.clipped() }.ignoresSafeArea()
         }.foregroundStyle(.white.opacity(0.62)).preferredColorScheme(.dark)
             .accessibilityIdentifier("playerViewport")
@@ -105,7 +105,7 @@ import SwiftUI
                         Circle().fill(.white.opacity(0.025)).overlay(Circle().stroke(.white.opacity(0.055),lineWidth:1)).padding(-12)
                         Circle().fill(RadialGradient(colors:[.black,Color(white:0.12),.black],center:.center,startRadius:diameter*0.22,endRadius:diameter*0.5)).shadow(color:.black.opacity(0.25),radius:12,y:5)
                         ForEach(0..<23) { index in Circle().stroke(.white.opacity(index%3 == 0 ? 0.035 : 0.015),lineWidth:1).padding(CGFloat(index)*diameter*0.006+3) }
-                        Artwork(url:track?.artworkURL,size:diameter*0.64).clipShape(Circle()).overlay(Circle().stroke(.black.opacity(0.7),lineWidth:3))
+                        Artwork(url:track?.artworkURL,size:diameter*0.64,track:track).clipShape(Circle()).overlay(Circle().stroke(.black.opacity(0.7),lineWidth:3))
                     }.rotationEffect(.degrees(reduceMotion ? 0 : recordRotation.angle(at:ProcessInfo.processInfo.systemUptime)))
                         // The surrounding opacity transition must never interpolate disc angles.
                         .transaction { $0.animation=nil }

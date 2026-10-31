@@ -60,7 +60,7 @@ struct PlaylistScreen: View {
     var body: some View {
         ZStack { ScreenBackground(); List(selection: $selected) {
             if let p = playlist { Section {
-                HStack(alignment: .top, spacing: 20) { Artwork(url: p.artworkURL, size: 118, favorite: p.kind == .favorites, fileKey: p.coverFileKey); VStack(alignment: .leading, spacing: 12) { Text(p.name).font(.title2.bold()); Text("\(items.count) 首歌曲").font(.subheadline).foregroundStyle(.secondary) } }.padding(.vertical, 16)
+                HStack(alignment: .top, spacing: 20) { Artwork(url: p.artworkURL, size: 118, favorite: p.kind == .favorites, fileKey: p.coverFileKey, playlistID: p.id); VStack(alignment: .leading, spacing: 12) { Text(p.name).font(.title2.bold()); Text("\(items.count) 首歌曲").font(.subheadline).foregroundStyle(.secondary) } }.padding(.vertical, 16)
                 HStack { Button { Task { await model.play(items.map(\.track)) } } label: { Label("播放全部", systemImage: "play.circle.fill").font(.headline).foregroundStyle(Theme.red) }.disabled(items.isEmpty); Spacer(); Button { Task { await model.play(items.map(\.track), shuffle: true) } } label: { Image(systemName: "shuffle").frame(width: 44, height: 44) }.disabled(items.isEmpty).accessibilityLabel("随机播放歌单") }.buttonStyle(.plain)
             }.listRowSeparator(.hidden).listRowBackground(Color.clear) }
             if items.isEmpty { EmptyState(symbol: "music.note.list", title: "歌单还是空的", message: "搜索歌曲后，通过更多菜单加入此歌单").listRowBackground(Color.clear).listRowSeparator(.hidden) }
@@ -96,7 +96,7 @@ struct AddToPlaylistScreen: View {
     @State private var saving = false
     var body: some View { NavigationStack { List {
         Button("新建歌单", systemImage: "plus") { creating = true }
-        ForEach(model.library.playlists) { p in Button { Task { saving = true; if await model.perform(.addTracks(p.id, tracks)) != nil { dismiss() }; saving = false } } label: { HStack { Artwork(url: p.artworkURL, size: 48, favorite: p.kind == .favorites, fileKey: p.coverFileKey); VStack(alignment: .leading) { Text(p.name); Text("\(p.count) 首").font(.caption).foregroundStyle(.secondary) } } } }
+        ForEach(model.library.playlists) { p in Button { Task { saving = true; if await model.perform(.addTracks(p.id, tracks)) != nil { dismiss() }; saving = false } } label: { HStack { Artwork(url: p.artworkURL, size: 48, favorite: p.kind == .favorites, fileKey: p.coverFileKey, playlistID: p.id); VStack(alignment: .leading) { Text(p.name); Text("\(p.count) 首").font(.caption).foregroundStyle(.secondary) } } } }
     }.disabled(saving).navigationTitle("添加 \(tracks.count) 首歌曲").navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } } }.alert("新建歌单", isPresented: $creating) { TextField("歌单名称", text: $name); Button("创建并添加") { Task { saving = true; if let result = await model.perform(.create(PlaylistDraft(name: name))), let id = result.playlistID, await model.perform(.addTracks(id, tracks)) != nil { dismiss() }; saving = false } }; Button("取消", role: .cancel) {} } }.tint(Theme.red) }
 }
 struct HistoryScreen: View {
